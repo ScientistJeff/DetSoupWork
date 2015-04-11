@@ -65,11 +65,12 @@ def preproc(props, lem=True):
     
 def tokensizer(textsingle):
     
-
+    #strip punctuation
     textsingle = textsingle.encode('utf-8').translate(None, string.punctuation)
+    #tokenize    
     tokens = nltk.word_tokenize(textsingle)   
+    #lemmatize - like stemming, but screens for only words in a dictionary    
     wnl = nltk.WordNetLemmatizer()
-    
     mappedlem = map(wnl.lemmatize,tokens)
     
     
@@ -77,18 +78,18 @@ def tokensizer(textsingle):
     
 #============================
 def clustertext(wordlist, clusters=8):
-    global tfidf_model
-    global vectorizer    
-    """ Transform texts to Tf-Idf coordinates and cluster texts using K-Means """
+
+    #generate a stopwords set  
     ignore = set(nltk.corpus.stopwords.words('english'))
+    #applies a Tf-Idf function across each text, returns a vector
     vectorizer = TfidfVectorizer(tokenizer=tokensizer,
                                  stop_words=ignore,
                                  #max_df=0.5,
                                  #min_df=0.1,
                                  lowercase=True)
-    
- 
     tfidf_model = vectorizer.fit_transform(wordlist)
+    
+    #apply k means clustering across text vectors
     km_model = KMeans(n_clusters=clusters)
     km_model.fit(tfidf_model) 
     
@@ -100,7 +101,8 @@ def clustertext(wordlist, clusters=8):
     
 #============================
 def topfeaturenames(vectorizer, tfidf_model):
-    
+    #get the names of the features( the words) and collect the top 20 terms 
+    #from each text
     featurenames = vectorizer.get_feature_names()
     dictlist = []
     
@@ -113,7 +115,7 @@ def topfeaturenames(vectorizer, tfidf_model):
     return dictlist       
 #============================
 def wordclouding(clustex,dictlist):
-    
+    #collates the texts from each cluster and wordclouds the top 30 terms
     cloudlist = []
     for clusternum in clustex:
         clustcommon=[]
@@ -131,7 +133,7 @@ def wordclouding(clustex,dictlist):
     
 #============================
 def main():
-        
+    global cloudlist    
     texts = import_mgmt() 
     texts = preproc(texts)
     
